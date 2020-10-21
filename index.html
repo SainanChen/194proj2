@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+  <style>
+  h1 { color: INDIANRED; font-size: 30px; font-family: 'Signika', sans-serif; padding-top: 50px; }
+  h2 {color: INDIANRED;font-family: 'Signika', sans-serif; margin-top: 50px;margin-left: 20px;}
+  h3 { font-family: 'Inder', sans-serif; line-height: 35px; margin-bottom: 10px; color: #666; margin-left: 20px;}
+  p { font-family: 'Inder', sans-serif; line-height: 20px; margin-bottom: 5px; margin-left: 50px; margin-right: 50px; color: #666; }
+  a { color: #ff4411; transition: .5s; -moz-transition: .5s; -webkit-transition: .5s; -o-transition: .5s; }
+  a:hover { color: #a03c21 }
+  .date { float: left }
+  .author { float: right }
+  .entry-content { border-bottom: 3px solid #666; padding: 0 0 15px 0; margin-bottom: 8px; }
+  .meta-info { padding: 5px; overflow: hidden; }
+  .meta-info p { font-family: 'Fenix', serif; font-style: italic; color: #666; font-size: 16px; }
+  figcaption {color: INDIANRED; font-family: 'Signika', sans-serif;text-align: center;}
+  figure { margin-bottom: 20px;text-align: center;}
+  .total {width:1000px; height:400px;}
+  .column_left {float:left; width:500px; height:500px;}
+  .column_right {float:right; width:500px; height:500px;}
+  .total2 {width:1200px; height:130px;}
+  .column_1 {float:left; width:300px; height:200px;}
+  .column_2 {float:left; width:300px; height:200px;}
+  .column_3 {float:right; width:300px; height:200px;}
+  .column_4 {float:right; width:300px; height:200px;}
+  .total3 {width:1200px; height:550px;}
+  .column_21 {float:left; width:400px; height:550px;}
+  .column_22 {float:left; width:400px; height:550px;}
+  .column_23 {float:right; width:400px; height:550px;}
+  
+  </style>
+
+  <head>
+     <title>CS 194 Project 2</title>
+     <link rel="stylesheet" type="text/css" href="css/index.css">
+  </head>
+
+  <body style="background:#F8F6CA; margin-left: 50px; margin-right: 50px;">
+    <h1 class="">CS 194 Project 2: Fun with Filters and Frequencies!</h1>
+    <h3> By Sainan Chen</h3>
+    
+    <div style="background-color:rgba(255,255,255,0.6);background-margin:10px;">
+      <p style="margin: 10px 10px 10px 10px;">
+        
+      <p></p>
+      <h2>1 Overview</h2>
+      <p>
+        In this project, we are going to explore edge detector, image sharpening, hybrid images and image blending. All
+        of these functions are achieved by appling filters on images using convolution.
+      </p>
+      
+      <h2>2 Edge Detector (gradient filter)</h2>
+      <p>
+        As we know, a clear edge means there's a great difference between adjacent pixels, which also means there's a great gradient.
+        To detect edges, we convolute the image matrix by x_gradient matrix [1 -1] and y_gradient matrix [1; -1], and the result would
+        be the gradient on x direction at all pixels and the gradient on y direction at all pixels (2nd & 3rd image below). To view the
+        overall edge/gradient, we calculate the magnitude of the combined gradient vector, which is (x_gradient^2+y_gradient^2)^0.5.
+        <div class="total">
+          <div class="column_left">
+            <figure>
+              <img src="cameraman.png" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> original image</figcaption>
+            </figure>
+          </div>
+          <div class="column_right">
+            <figure>
+              <img src="x.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> gradient on x direction (vertical edges)</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="total">
+          <div class="column_left">
+            <figure>
+              <img src="y.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> gradient on y direction (horizontal edges)</figcaption>
+            </figure>
+          </div>
+          <div class="column_right">
+            <figure>
+              <img src="gradient.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> overall gradient magnitude (edges)</figcaption>
+            </figure>
+          </div>
+        </div>
+      </p>
+
+      <h3>2.1 Improvement: Use Gaussian Filter (low frequency filter) first to reduce noise</h3>
+      <p>
+        We notice that in the result of last part, the edges are not smooth. To reduce the noise, we can convolute the image with Gaussian
+        filter first, then convolute the result with the gradient filters. From the images below, we can see Gaussian filter did reduce the
+        noise and make edges smoother. Another way to do this is by applying the gradient filter on Gaussian filter, then apply the combined
+        filter onto the image. The two methods produce the same result because of the property of convolution.
+        <div class="total">
+          <div class="column_left">
+            <figure>
+              <img src="gaussian1.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> Applied Gaussian filter to the image first, then applied gradient filter to the image</figcaption>
+            </figure>
+          </div>
+          <div class="column_right">
+            <figure>
+              <img src="gaussian2.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> Applied gradient filter to Gaussian filter, the apply the combined filter to the image</figcaption>
+            </figure>
+          </div>
+        </div>
+        <br>
+        .
+      </p>
+
+      <h3>2.2 Application: Image Straightening</h3>
+      <p>
+        One application to utilize edges is straightening an image. By maximizing the number of vertical and horizontal edges, we can
+        rotate the image to be straight. Below are some examples with original image, its orientation histogram, straightening image
+        and its orientation image. To reduce the effects caused by black edges produced during the rotation process, we crop the result
+        image and only consider the center part. During the practice, however, the number of 0 angles is not accurate, because for a
+        large area with an identical color, the angles for all pixels would be 0 due to 0 y-direction gradient. Therefore, we want to focus
+        more on number of 90 degree angles. Furthermore, we realized that besides the exact number, the peak is also a good indicator.
+        <div class="total2">
+          <div class="column_1">
+            <figure>
+              <img src="facade 0.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> original </figcaption>
+            </figure>
+          </div>
+          <div class="column_2">
+            <figure>
+              <img src="facade 0 hist.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> </figcaption>
+            </figure>
+          </div>
+          <div class="column_4">
+            <figure>
+              <img src="facade -5 hist.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> </figcaption>
+            </figure>
+          </div>
+          <div class="column_3">
+            <figure>
+              <img src="facade -5.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> straightened(-5) </figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="total2">
+          <div class="column_1">
+            <figure>
+              <img src="lib 0.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> original </figcaption>
+            </figure>
+          </div>
+          <div class="column_2">
+            <figure>
+              <img src="lib 0 his.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> </figcaption>
+            </figure>
+          </div>
+          <div class="column_4">
+            <figure>
+              <img src="lib -12 his.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> </figcaption>
+            </figure>
+          </div>
+          <div class="column_3">
+            <figure>
+              <img src="lib -12.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> straightened(-12) </figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="total2" style="height:400px">
+          <div class="column_1">
+            <figure>
+              <img src="window 0.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> original </figcaption>
+            </figure>
+          </div>
+          <div class="column_2">
+            <figure>
+              <img src="window 0 his.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> </figcaption>
+            </figure>
+          </div>
+          <div class="column_4">
+            <figure>
+              <img src="window 10 his.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> </figcaption>
+            </figure>
+          </div>
+          <div class="column_3">
+            <figure>
+              <img src="window 10.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> straightened(10) </figcaption>
+            </figure>
+          </div>
+        </div>
+      <p>Failure Case:
+      </p>
+        <div class="total2">
+          <div class="column_1">
+            <figure>
+              <img src="pic 0.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> original </figcaption>
+            </figure>
+          </div>
+          <div class="column_2">
+            <figure>
+              <img src="pic 0 his.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> </figcaption>
+            </figure>
+          </div>
+          <div class="column_4">
+            <figure>
+              <img src="pic -15 his.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> </figcaption>
+            </figure>
+          </div>
+          <div class="column_3">
+            <figure>
+              <img src="pic -15.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> straightened(-15) </figcaption>
+            </figure>
+          </div>
+        </div>
+        <p>
+          As we mentioned before, a large area with same color might influence the straighthening result unpredictably. For this example,
+          the input above has few lines in it, and the edge plot shows few white lines while most of the pixels are being just black.
+          Those black pixels dominate and have unpredictable influences on the angle distribution.
+        </p>
+        <figure>
+          <img src="pic -15 line.jpg" style="margin-top: 20px;width:100%;" class="center" >
+          <figcaption> edge (magnitude) plot </figcaption>
+        </figure>
+        <br>
+        .
+        <br>
+        .
+      </p>
+
+
+
+      <h2>3 Image Sharpening (high frequency filter)</h2>
+      <p>
+        In this part, instead of bluring an image, we are going to use Gaussian filter to sharpen an image. If we subtract the filtered
+         image from original image, the part with highest frequencies (sharpest part) will be left. By adding this sharpest part back to
+         the image, we can gain an a sharpened image.
+        <div class="total3" style="height:270px" >
+          <div class="column_1">
+            <figure>
+              <img src="taj.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> original </figcaption>
+            </figure>
+          </div>
+          <div class="column_2">
+            <figure>
+              <img src="taj high.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> sharpened </figcaption>
+            </figure>
+          </div>
+          <div class="column_4">
+            <figure>
+              <img src="gate high.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> sharpened </figcaption>
+            </figure>
+          </div>
+          <div class="column_3">
+            <figure>
+              <img src="gate.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> original </figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="total3" style="height:290px">
+          <div class="column_1">
+            <figure>
+              <img src="library.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> original </figcaption>
+            </figure>
+          </div>
+          <div class="column_2">
+            <figure>
+              <img src="library high.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> sharpened </figcaption>
+            </figure>
+          </div>
+          <div class="column_4">
+            <figure>
+              <img src="beach high.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> sharpened </figcaption>
+            </figure>
+          </div>
+          <div class="column_3">
+            <figure>
+              <img src="beach.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> original </figcaption>
+            </figure>
+          </div>
+        </div>
+      </p>
+
+      <h3>3.1 Blur then Sharpen </h3>
+      <p>
+        If we blur an image using a Gaussian filter first then try to recover it using sharpening method mentioned
+        before, we notice that there is still some information lost during the process.
+        <div class="total" style="height:350px">
+          <div class="column_left" style="height:350px">
+            <figure>
+              <img src="bridge.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> original</figcaption>
+            </figure>
+          </div>
+          <div class="column_right" style="height:350px">
+            <figure>
+              <img src="bridge blur.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> blurred</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="total" style="height:350px">
+          <div class="column_left" style="height:350px">
+            <figure>
+              <img src="bridge.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> original </figcaption>
+            </figure>
+          </div>
+          <div class="column_right" style="height:350px">
+            <figure>
+              <img src="bridge recover.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> recovered from blured version (lose info)</figcaption>
+            </figure>
+          </div>
+        </div>
+      </p>
+
+      
+      <h2>4 Hybrid Image (combined high & low frequency filters)</h2>
+      <p>
+        By combining high frequency filtered image and another low frequency filtered image, we can produce an hybrid image
+        which will show high-frequency image when audience is close to the screen and loww-frequency image when audience is
+        far away.
+        <div class="total3">
+          <div class="column_21">
+            <figure>
+              <img src="nutmeg.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> original 1 </figcaption>
+            </figure>
+          </div>
+          <div class="column_22">
+            <figure>
+              <img src="DerekPicture.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> original 2 </figcaption>
+            </figure>
+          </div>
+          <div class="column_23">
+            <figure>
+              <img src="hybrid.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> hybrid </figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="total3">
+          <div class="column_21">
+            <figure>
+              <img src="11.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> original 1 </figcaption>
+            </figure>
+          </div>
+          <div class="column_22">
+            <figure>
+              <img src="12.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> original 2 </figcaption>
+            </figure>
+          </div>
+          <div class="column_23">
+            <figure>
+              <img src="1output.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> hybrid </figcaption>
+            </figure>
+          </div>
+        </div>
+        <p>
+          For next example, we are going to do frequency analysis. As we can see, although the frequencies of the
+          two input images are similar, only low frequencies are left for filtered input 1 and only high
+          frequencies are left for filtered input 2. Tshere is no ringing effect on the result frequency
+          plot, which means the result image is smooth.
+        </p>
+        <div class="total3" style="height:650px">
+          <div class="column_21">
+            <figure>
+              <img src="21.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> original 1 </figcaption>
+            </figure>
+          </div>
+          <div class="column_22">
+            <figure>
+              <img src="22.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> original 2 </figcaption>
+            </figure>
+          </div>
+          <div class="column_23">
+            <figure>
+              <img src="2output.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> hybrid </figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="total3" style="height:300px">
+          <div class="column_21" style="height:300px">
+            <figure>
+              <img src="21 freq.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption>  log magnitude of the Fourier transform of input 1 </figcaption>
+            </figure>
+          </div>
+          <div class="column_22" style="height:300px">
+            <figure>
+              <img src="22 freq.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> log magnitude of the Fourier transform of input 2 </figcaption>
+            </figure>
+          </div>
+          <div class="column_23" style="height:300px">
+            <figure>
+              <img src="hybrid freq.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> log magnitude of the Fourier transform of hybrid output </figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="total3" style="height:350px">
+          <div class="column_21" style="height:350px">
+            <figure>
+              <img src="21 blur freq.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> log magnitude of the Fourier transform of filtered input 1 </figcaption>
+            </figure>
+          </div>
+          <div class="column_22" style="height:350px">
+            <figure>
+              <img src="22 blur freq.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> log magnitude of the Fourier transform of filtered input  2 </figcaption>
+            </figure>
+          </div>
+        </div>
+      <p>
+        Failure Case:<br>
+        In the following example, because the cat in the second image has overall more black tone compared
+        to the dog in the first image, its high-frequency filtered result has strong and clear edges which
+        dominate the hybrid image over the very blurred dog image. Therefore, even if we stay far away from the
+        hybrid image, we may still only see the cat instead of the low-frequency dog.
+      </p>
+      <div class="total3" style="height:400px">
+        <div class="column_21" style="height:400px">
+          <figure>
+            <img src="31.jpg" style="margin-top: 20px; width:100%;" class="center" >
+            <figcaption> original 1 </figcaption>
+          </figure>
+        </div>
+        <div class="column_22" style="height:400px">
+          <figure>
+            <img src="32.jpg" style="margin-top: 20px;width:100%;" class="center" >
+            <figcaption> original 2 </figcaption>
+          </figure>
+        </div>
+        <div class="column_23" style="height:400px">
+          <figure>
+            <img src="3output.jpg" style="margin-top: 20px; width:100%;" class="center" >
+            <figcaption> hybrid </figcaption>
+          </figure>
+        </div>
+      </div>
+      </p>
+
+      <h2>5 Gaussian and Laplacian Stacks</h2>
+      <p>
+        Now we want to look at Gaussian stacks with increasing sigma for Gaussian filters and corresponding Laplacian stacks.
+        For Gaussian layer 1, 2, 3 and 4, the sigmas for the Gaussian filters are 2, 2^2, 2^3, 2^4 reqpectively.
+        Laplacian layers are calculated by subtracting the Gaussian layer in the same level from the Gaussian layer in the
+        previous level. Higher the level, lower the frequency that the Laplacian layer contains. Here we have examples of
+        an interesting painting as well as the hybrid image we created in last section.
+        <div class="total" style="height:350px">
+          <div class="column_left" style="height:350px">
+            <figure>
+              <img src="painting.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> original image</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="total3" style="height:200px">
+          <div class="column_1">
+            <figure>
+              <img src="painting 1.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> Gaussian layer 1 </figcaption>
+            </figure>
+          </div>
+          <div class="column_2">
+            <figure>
+              <img src="painting 2.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> Gaussian layer 2 </figcaption>
+            </figure>
+          </div>
+          <div class="column_4">
+            <figure>
+              <img src="painting 4.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> Gaussian layer 4 </figcaption>
+            </figure>
+          </div>
+          <div class="column_3">
+            <figure>
+              <img src="painting 3.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> Gaussian layer 3 </figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="total3" style="height:220px">
+          <div class="column_1">
+            <figure>
+              <img src="painting l1.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> Laplacian layer 1 </figcaption>
+            </figure>
+          </div>
+          <div class="column_2">
+            <figure>
+              <img src="painting l2.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> Laplacian layer 2  </figcaption>
+            </figure>
+          </div>
+          <div class="column_4">
+            <figure>
+              <img src="painting l4.jpg" style="margin-top: 20px; width:100%;" class="center" >
+              <figcaption> Laplacian layer 4 </figcaption>
+            </figure>
+          </div>
+          <div class="column_3">
+            <figure>
+              <img src="painting l3.jpg" style="margin-top: 20px;width:100%;" class="center" >
+              <figcaption> Laplacian layer 3 </figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="total" style="height:460px">
+          <div class="column_left" style="height:460px">
+            <figure>
+              <img src="2output.jpg" style="margin-top: 20px; width:50%;" class="center" >
+              <figcaption> original image</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="total3" style="height:350px">
+          <div class="column_1">
+            <figure>
+              <img src="girl 1.jpg" style="margin-top: 20px; width:70%;" class="center" >
+              <figcaption> Gaussian layer 1 </figcaption>
+            </figure>
+          </div>
+          <div class="column_2">
+            <figure>
+              <img src="girl 2.jpg" style="margin-top: 20px;width:70%;" class="center" >
+              <figcaption> Gaussian layer 2 </figcaption>
+            </figure>
+          </div>
+          <div class="column_4">
+            <figure>
+              <img src="girl 4.jpg" style="margin-top: 20px; width:70%;" class="center" >
+              <figcaption> Gaussian layer 4 </figcaption>
+            </figure>
+          </div>
+          <div class="column_3">
+            <figure>
+              <img src="girl 3.jpg" style="margin-top: 20px;width:70%;" class="center" >
+              <figcaption> Gaussian layer 3 </figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="total3" style="height:350px">
+          <div class="column_1">
+            <figure>
+              <img src="girl l1.jpg" style="margin-top: 20px; width:70%;" class="center" >
+              <figcaption> Laplacian layer 1 </figcaption>
+            </figure>
+          </div>
+          <div class="column_2">
+            <figure>
+              <img src="girl l2.jpg" style="margin-top: 20px;width:70%;" class="center" >
+              <figcaption> Laplacian layer 2  </figcaption>
+            </figure>
+          </div>
+          <div class="column_4">
+            <figure>
+              <img src="girl l4.jpg" style="margin-top: 20px; width:70%;" class="center" >
+              <figcaption> Laplacian layer 4 </figcaption>
+            </figure>
+          </div>
+          <div class="column_3">
+            <figure>
+              <img src="girl l3.jpg" style="margin-top: 20px;width:70%;" class="center" >
+              <figcaption> Laplacian layer 3 </figcaption>
+            </figure>
+          </div>
+        </div>
+      </p>
+
+      <h2>6 Multi-resolution Blending</h2>
+      <p>
+        Now we are ready to blend two iamges together smoothly using Gaussian and Laplacian stacks! Instead of just put half
+        and half iamges together and having a clear boundary between the images, we separate each image into Laplacian
+        layers and one final Gaussian layer (so the sum of all these layers will be the original image) to better blend the
+        two images. The Laplacian stacks make sure we preserve details and clear edges, while the base Gaussian layer makes
+        the blending smooth and looks natural. We also use Gaussian stacks for masks. The second step is to
+        apply masks onto images in every layer using LA*GM + LB*(1-GM), where LA is Laplacian layer for image A, LB is
+        Laplacian layer for image B, GM is Gaussian layer for mask, and teh result is a combined image for that layer (last
+        row on the graph).  The last step is to add up combined images for all layers (don't forget last layer, which is
+        Gaussian stack for both images!).
+        <figure>
+          <img src="merge1.jpg" style="margin-top: 20px;width:70%;" class="center" >
+          <figcaption> Example 1: Oraple </figcaption>
+        </figure>
+        <figure>
+          <img src="merge2.jpg" style="margin-top: 20px;width:70%;" class="center" >
+          <figcaption> </figcaption>
+        </figure>
+        <figure>
+          <img src="final2.jpg" style="margin-top: 20px;width:70%;" class="center" >
+          <figcaption> Example 2: Fish in the sky! </figcaption>
+        </figure>
+        <figure>
+          <img src="merge3.jpg" style="margin-top: 20px;width:70%;" class="center" >
+          <figcaption>  </figcaption>
+        </figure>
+        <figure>
+        <img src="final3.jpg" style="margin-top: 20px;width:70%;" class="center" >
+        <figcaption> Example 3: City day & night </figcaption>
+      </figure>
+      </p>
+      
+      <h2>7 Conclusion</h2>
+      <p>
+        In this project, we explored many interesting photo filters, and actually all these functions are achieved based on
+        convolution and Gaussian filters! The main idea is preserving/strengthening details using high frequency
+        filter (original image - gaussian filtered image) and reduce rapid random noise using low frequency filter
+        (gaussian filter). What I learned most from the project is that instead of manipulating the image directly, it will
+        always be beneficial to consider the image as a compound of low frequency part and high frequency part and then
+        deal with the two parts respectively according to their properties.
+      <br>
+      <br>
+      <br>
+      <br>
+      Photo source: <br>
+      Section 4 young & old woman: https://www.thisiscolossal.com/2020/04/covid-19-getty-recreations/<br>
+      Section 4 girl & painting: https://www.insider.com/young-vs-old-photo-portrait-comparison-100-years-2019-11<br>
+      Section 5 painting: https://www.pinterest.com/pin/191966002836217780/<br>
+      <br>
+      <br>
+      <br>
+
+      </p>
+      </div>
+      </div>
+    </div>
+  </body>
+</html>
